@@ -9,6 +9,8 @@ from datetime import datetime
 from statistics import fmean
 from typing import TextIO
 
+from termcolor import colored
+
 from .data_fetcher import DataFetcher
 from .models import (
     CarbonIntensityIndex,
@@ -18,6 +20,7 @@ from .models import (
 )
 
 Observation = IntensityPeriod | RegionalObservation
+ORANGE = (255, 165, 0)
 
 
 @dataclass(frozen=True)
@@ -92,15 +95,38 @@ def _format_time(value: datetime) -> str:
     return value.astimezone().strftime("%Y-%m-%d %H:%M %Z")
 
 
-def _format_observation(label: str, observation: Observation) -> str:
-    intensity = observation.intensity
-    return (
-        f"  {label:<9} {intensity.forecast:>4} gCO2/kWh "
-        f"({intensity.index.value}) at {_format_time(observation.from_)}"
+def _format_index(index: CarbonIntensityIndex, *, use_color: bool) -> str:
+    text = f"({index.value})"
+    if index in {CarbonIntensityIndex.VERY_LOW, CarbonIntensityIndex.LOW}:
+        colour = "green"
+    elif index is CarbonIntensityIndex.MODERATE:
+        colour = ORANGE
+    else:
+        colour = "red"
+
+    return colored(
+        text,
+        colour,
+        no_color=not use_color,
+        force_color=use_color,
     )
 
 
-def render_status(report: GridStatusReport) -> str:
+def _format_observation(
+    label: str,
+    observation: Observation,
+    *,
+    use_color: bool,
+) -> str:
+    intensity = observation.intensity
+    return (
+        f"  {label:<9} {intensity.forecast:>4} gCO2/kWh "
+        f"{_format_index(intensity.index, use_color=use_color)} "
+        f"at {_format_time(observation.from_)}"
+    )
+
+
+def render_status(report: GridStatusReport, *, use_color: bool = False) -> str:
     """Render a report as plain text suitable for any terminal."""
     current = report.current
     fuels = sorted(
@@ -114,19 +140,27 @@ def render_status(report: GridStatusReport) -> str:
         "Current",
         (
             f"  Carbon intensity: {current.intensity.forecast} gCO2/kWh "
-            f"({current.intensity.index.value})"
+            f"{_format_index(current.intensity.index, use_color=use_color)}"
         ),
         "  Generation mix:",
         *(f"    {fuel.fuel.value:<10} {fuel.percentage:>5.1f}%" for fuel in fuels),
         "",
         "Last 24 hours",
-        _format_observation("Minimum:", report.backcast.minimum),
-        _format_observation("Maximum:", report.backcast.maximum),
+        _format_observation(
+            "Minimum:", report.backcast.minimum, use_color=use_color
+        ),
+        _format_observation(
+            "Maximum:", report.backcast.maximum, use_color=use_color
+        ),
         f"  {'Average:':<9} {report.backcast.average:>4.1f} gCO2/kWh",
         "",
         "Next 24 hours",
-        _format_observation("Minimum:", report.forecast.minimum),
-        _format_observation("Maximum:", report.forecast.maximum),
+        _format_observation(
+            "Minimum:", report.forecast.minimum, use_color=use_color
+        ),
+        _format_observation(
+            "Maximum:", report.forecast.maximum, use_color=use_color
+        ),
         f"  {'Average:':<9} {report.forecast.average:>4.1f} gCO2/kWh",
         "",
         "Recommendation",
@@ -147,8 +181,10 @@ class DataVisualizer:
             self.data_fetcher.backcast_24h(),
         )
 
-    def render(self) -> str:
-        return render_status(self.get_report())
+    def render(self, *, use_color: bool = False) -> str:
+        return render_status(self.get_report(), use_color=use_color)
 
     def display(self, file: TextIO | None = None) -> None:
-        print(self.render(), file=file or sys.stdout)
+        output = file or sys.stdout
+        use_color = bool(getattr(output, "isatty", lambda: False)())
+        print(self.render(use_color=use_color), file=output)

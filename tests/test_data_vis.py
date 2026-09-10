@@ -12,6 +12,11 @@ from green_queue.data_vis import (
 from green_queue.models import CurrentRegionalResponse, RegionalForecastResponse
 
 
+ANSI_GREEN = "\x1b[32m"
+ANSI_ORANGE = "\x1b[38;2;255;165;0m"
+ANSI_RED = "\x1b[31m"
+
+
 def reading(intensity: int, index: str = "moderate") -> dict:
     return {
         "regionid": 2,
@@ -101,6 +106,31 @@ def test_render_status_is_plain_text_and_sorts_generation_mix() -> None:
     assert "Carbon intensity: 70 gCO2/kWh (low)" in output
     assert output.index("wind") < output.index("gas")
     assert "\x1b" not in output
+
+
+@pytest.mark.parametrize(
+    ("index", "expected_colour"),
+    [
+        ("very low", ANSI_GREEN),
+        ("low", ANSI_GREEN),
+        ("moderate", ANSI_ORANGE),
+        ("high", ANSI_RED),
+        ("very high", ANSI_RED),
+    ],
+)
+def test_render_status_colours_intensity_indices(
+    index: str,
+    expected_colour: str,
+) -> None:
+    report = build_status_report(
+        current_response(index=index),
+        forecast=observations(55, 30),
+        backcast=observations(40, 60),
+    )
+
+    output = render_status(report, use_color=True)
+
+    assert f"{expected_colour}({index})\x1b[0m" in output
 
 
 def test_visualizer_accepts_a_fetcher_and_output_stream() -> None:
