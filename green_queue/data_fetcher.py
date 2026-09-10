@@ -51,6 +51,7 @@ class DataFetcher:
         self.timeout = timeout
         self.session = session or requests.Session()
         self.region = region
+        self.region_ids = REGION_IDS
 
         if region.casefold() not in REGION_IDS:
             choices = ", ".join(name.title() for name in REGION_IDS)
