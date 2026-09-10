@@ -67,12 +67,12 @@ def build_status_report(
     minimum = forecast_stats.minimum
 
     if current.intensity.forecast <= minimum.intensity.forecast:
-        recommendation = "Now is the lowest-carbon available time to run your job."
+        recommendation = "Now is a great time to run your job!"
     elif current.intensity.index in {
         CarbonIntensityIndex.VERY_LOW,
         CarbonIntensityIndex.LOW,
     }:
-        recommendation = "Now is a good time to run your job."
+        recommendation = "Now is a great time to run your job!"
     else:
         recommendation = (
             f"Consider waiting until {_format_time(minimum.from_)} when the forecast "
