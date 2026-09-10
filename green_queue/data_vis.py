@@ -6,6 +6,7 @@ import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from statistics import fmean
 from typing import TextIO
 
@@ -23,6 +24,12 @@ Observation = IntensityPeriod | RegionalObservation
 ORANGE = (255, 165, 0)
 
 
+class RecommendationLevel(str, Enum):
+    GREAT_TIME = "great_time"
+    NO_LOWER_FORECAST = "no_lower_forecast"
+    WAIT = "wait"
+
+
 @dataclass(frozen=True)
 class IntensityStatistics:
     minimum: Observation
@@ -37,6 +44,7 @@ class GridStatusReport:
     backcast: IntensityStatistics
     forecast: IntensityStatistics
     recommendation: str
+    recommendation_level: RecommendationLevel
 
 
 def intensity_statistics(observations: Sequence[Observation]) -> IntensityStatistics:
@@ -69,18 +77,24 @@ def build_status_report(
     backcast_stats = intensity_statistics(backcast)
     minimum = forecast_stats.minimum
 
-    if current.intensity.forecast <= minimum.intensity.forecast:
-        recommendation = "Now is a great time to run your job!"
-    elif current.intensity.index in {
+    if current.intensity.index in {
         CarbonIntensityIndex.VERY_LOW,
         CarbonIntensityIndex.LOW,
     }:
         recommendation = "Now is a great time to run your job!"
+        recommendation_level = RecommendationLevel.GREAT_TIME
+    elif current.intensity.forecast <= minimum.intensity.forecast:
+        recommendation = (
+            "There are not any lower forecast periods in the next 24 hours; "
+            "consider running your job now."
+        )
+        recommendation_level = RecommendationLevel.NO_LOWER_FORECAST
     else:
         recommendation = (
             f"Consider waiting until {_format_time(minimum.from_)} when the forecast "
             "carbon intensity is lower."
         )
+        recommendation_level = RecommendationLevel.WAIT
 
     return GridStatusReport(
         region=region.short_name,
@@ -88,6 +102,7 @@ def build_status_report(
         backcast=backcast_stats,
         forecast=forecast_stats,
         recommendation=recommendation,
+        recommendation_level=recommendation_level,
     )
 
 
@@ -107,6 +122,20 @@ def _format_index(index: CarbonIntensityIndex, *, use_color: bool) -> str:
     return colored(
         text,
         colour,
+        no_color=not use_color,
+        force_color=use_color,
+    )
+
+
+def _format_recommendation(report: GridStatusReport, *, use_color: bool) -> str:
+    colours = {
+        RecommendationLevel.GREAT_TIME: "green",
+        RecommendationLevel.NO_LOWER_FORECAST: ORANGE,
+        RecommendationLevel.WAIT: "red",
+    }
+    return colored(
+        report.recommendation,
+        colours[report.recommendation_level],
         no_color=not use_color,
         force_color=use_color,
     )
@@ -164,7 +193,7 @@ def render_status(report: GridStatusReport, *, use_color: bool = False) -> str:
         f"  {'Average:':<9} {report.forecast.average:>4.1f} gCO2/kWh",
         "",
         "Recommendation",
-        f"  {report.recommendation}",
+        f"  {_format_recommendation(report, use_color=use_color)}",
     ]
     return "\n".join(lines)
 

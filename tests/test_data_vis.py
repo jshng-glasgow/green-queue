@@ -93,6 +93,19 @@ def test_report_recommends_the_lower_forecast_period() -> None:
     assert report.forecast.minimum.intensity.forecast == 30
 
 
+def test_report_identifies_when_no_forecast_period_is_lower() -> None:
+    report = build_status_report(
+        current_response(intensity=20, index="moderate"),
+        forecast=observations(30, 55),
+        backcast=observations(40, 60),
+    )
+
+    assert report.recommendation == (
+        "There are not any lower forecast periods in the next 24 hours; "
+        "consider running your job now."
+    )
+
+
 def test_render_status_is_plain_text_and_sorts_generation_mix() -> None:
     report = build_status_report(
         current_response(index="low"),
@@ -131,6 +144,51 @@ def test_render_status_colours_intensity_indices(
     output = render_status(report, use_color=True)
 
     assert f"{expected_colour}({index})\x1b[0m" in output
+
+
+@pytest.mark.parametrize(
+    ("current_intensity", "index", "forecast", "message", "expected_colour"),
+    [
+        (
+            70,
+            "low",
+            (30, 55),
+            "Now is a great time to run your job!",
+            ANSI_GREEN,
+        ),
+        (
+            20,
+            "moderate",
+            (30, 55),
+            "There are not any lower forecast periods in the next 24 hours; "
+            "consider running your job now.",
+            ANSI_ORANGE,
+        ),
+        (
+            70,
+            "moderate",
+            (30, 55),
+            "Consider waiting until",
+            ANSI_RED,
+        ),
+    ],
+)
+def test_render_status_colours_recommendations(
+    current_intensity: int,
+    index: str,
+    forecast: tuple[int, ...],
+    message: str,
+    expected_colour: str,
+) -> None:
+    report = build_status_report(
+        current_response(intensity=current_intensity, index=index),
+        forecast=observations(*forecast),
+        backcast=observations(40, 60),
+    )
+
+    output = render_status(report, use_color=True)
+
+    assert expected_colour + message in output
 
 
 def test_visualizer_accepts_a_fetcher_and_output_stream() -> None:
