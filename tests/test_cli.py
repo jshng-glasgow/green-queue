@@ -26,3 +26,12 @@ def test_status_command_returns_failure_for_network_errors(visualizer, capsys) -
 
     assert result == 1
     assert "unable to retrieve grid status: too slow" in capsys.readouterr().err
+
+def test_regions_command_lists_available_regions(capsys) -> None:
+    result = main(["regions"])
+
+    assert result == 0
+    output = capsys.readouterr().out
+    assert "Available Carbon Intensity API regions:" in output
+    assert "  North Scotland" in output
+    assert "  South East England" in output
