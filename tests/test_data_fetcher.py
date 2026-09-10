@@ -17,9 +17,9 @@ def test_current_intensity_returns_validated_model() -> None:
     payload = {
         "data": [
             {
-                "regionid": 16,
-                "dnoregion": "Scotland",
-                "shortname": "Scotland",
+                "regionid": 2,
+                "dnoregion": "SP Distribution",
+                "shortname": "South Scotland",
                 "data": [
                     {
                         "from": "2026-09-10T10:00Z",
@@ -38,7 +38,7 @@ def test_current_intensity_returns_validated_model() -> None:
 
     assert isinstance(result, CurrentRegionalResponse)
     session.get.assert_called_once_with(
-        "https://api.carbonintensity.org.uk/regional/scotland",
+        "https://api.carbonintensity.org.uk/regional/regionid/2",
         headers={"Accept": "application/json"},
         timeout=10.0,
     )
@@ -81,3 +81,8 @@ def test_http_errors_are_not_hidden() -> None:
 
     with pytest.raises(requests.HTTPError, match="503"):
         DataFetcher(session=session).current_intensity()
+
+
+def test_unknown_region_is_rejected_before_a_request() -> None:
+    with pytest.raises(ValueError, match="unknown region"):
+        DataFetcher(region="Atlantis")

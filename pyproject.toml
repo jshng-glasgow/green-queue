@@ -6,11 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "green-queue"
 version = "0.1.0"
 description = "Show lower-carbon times to run HPC jobs"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0,<3",
     "requests>=2.31,<3",
 ]
+
+[project.scripts]
+green-queue = "green_queue.cli:main"
 
 [project.optional-dependencies]
 test = ["pytest>=8,<9"]

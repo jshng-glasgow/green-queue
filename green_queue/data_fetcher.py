@@ -15,6 +15,28 @@ from .models import (
 )
 
 
+REGION_IDS = {
+    "north scotland": 1,
+    "south scotland": 2,
+    "north west england": 3,
+    "north east england": 4,
+    "yorkshire": 5,
+    "north wales & merseyside": 6,
+    "south wales": 7,
+    "west midlands": 8,
+    "east midlands": 9,
+    "east england": 10,
+    "south west england": 11,
+    "south england": 12,
+    "london": 13,
+    "south east england": 14,
+    "england": 15,
+    "scotland": 16,
+    "wales": 17,
+    "gb": 18,
+}
+
+
 class DataFetcher:
     def __init__(
         self,
@@ -30,6 +52,10 @@ class DataFetcher:
         self.session = session or requests.Session()
         self.region = region
 
+        if region.casefold() not in REGION_IDS:
+            choices = ", ".join(name.title() for name in REGION_IDS)
+            raise ValueError(f"unknown region {region!r}; choose one of: {choices}")
+
     def _fetch_data(self, endpoint: str) -> Any:
         response = self.session.get(
             urljoin(self.base_url, endpoint),
@@ -40,12 +66,8 @@ class DataFetcher:
         return response.json()
 
     def current_intensity(self) -> CurrentRegionalResponse:
-        if 'scotland' in self.region.lower():
-            endpoint = "regional/scotland"
-        elif 'wales' in self.region.lower():
-            endpoint = f"regional/wales"
-        else:
-            endpoint = f"regional/england"
+        region_id = REGION_IDS[self.region.casefold()]
+        endpoint = f"regional/regionid/{region_id}"
         return CurrentRegionalResponse.model_validate(self._fetch_data(endpoint))
 
     def forecast_24h(self) -> list[RegionalObservation]:
