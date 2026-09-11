@@ -69,9 +69,6 @@ class IntensityPeriod(Period):
 
 
 class Region(ApiModel):
-    # The API documentation lists 1-17, but the live endpoint also returns
-    # region 18 for the GB aggregate. Keep the lower bound without freezing an
-    # upstream identifier range that can grow again.
     region_id: int = Field(alias="regionid", ge=1)
     dno_region: str = Field(alias="dnoregion")
     short_name: str = Field(alias="shortname")
