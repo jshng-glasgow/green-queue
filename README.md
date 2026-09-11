@@ -51,7 +51,7 @@ $ python -m pip install -e '.[test]'
 
 ## Usage
 
-Show the status for South Scotland:
+Show the status for Great Britain:
 
 ```console
 $ green-queue status
@@ -60,7 +60,7 @@ $ green-queue status
 Select another API region or change the per-request timeout (in seconds - default 10s):
 
 ```console
-$ green-queue status --region "North Scotland" --timeout 5
+$ green-queue status --region "South Scotland" --timeout 5
 ```
 
 A full list of the availble API regions use:
