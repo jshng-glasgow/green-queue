@@ -71,5 +71,4 @@ timezone.
 
 ## License
 
-Green Queue is licensed under the [Creative Commons Attribution 4.0
-International License](LICENSE).
+Green Queue is licensed under the [GNU General Public License version 3](LICENSE).
