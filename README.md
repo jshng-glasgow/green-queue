@@ -68,11 +68,3 @@ reached, the command prints a concise error and returns a non-zero exit code.
 
 Times are returned by the API in UTC and displayed in the machine's local
 timezone.
-
-## Development
-
-Run the test suite with:
-
-```console
-$ python -m pytest
-```

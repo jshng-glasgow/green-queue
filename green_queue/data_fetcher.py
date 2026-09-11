@@ -44,7 +44,7 @@ class DataFetcher:
         *,
         timeout: float = 10.0,
         session: requests.Session | None = None,
-        region: str = "South Scotland",
+        region: str = "GB",
     ) -> None:
         self.headers = {"Accept": "application/json"}
         self.base_url = base_url.rstrip("/") + "/"
