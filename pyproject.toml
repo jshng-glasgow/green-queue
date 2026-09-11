@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,6 +7,8 @@ name = "green-queue"
 version = "0.1.0"
 description = "Show lower-carbon times to run HPC jobs"
 readme = "README.md"
+license = "CC-BY-4.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0,<3",
