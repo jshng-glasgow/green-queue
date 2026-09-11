@@ -57,10 +57,16 @@ Show the status for South Scotland:
 $ green-queue status
 ```
 
-Select another API region or change the per-request timeout:
+Select another API region or change the per-request timeout (in seconds - default 10s):
 
 ```console
 $ green-queue status --region "North Scotland" --timeout 5
+```
+
+A full list of the availble API regions use:
+
+```console
+$ green-queue regions
 ```
 
 Run `green-queue status --help` to see all status options. If the API cannot be
