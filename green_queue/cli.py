@@ -22,8 +22,8 @@ def build_parser() -> argparse.ArgumentParser:
     status = subparsers.add_parser("status", help="show current and 24-hour grid status")
     status.add_argument(
         "--region",
-        default="South Scotland",
-        help="Carbon Intensity API region name (default: South Scotland)",
+        default="GB",
+        help="Carbon Intensity API region name (default: GB)",
     )
     status.add_argument(
         "--timeout",
